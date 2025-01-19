@@ -29,8 +29,8 @@ extern "C" {
 
 #include "err_code.h"
 
-#define ICM42688_I2C_ADDR_0			0x76
-#define ICM42688_I2C_ADDR_1			0x77
+#define ICM42688_I2C_ADDR_0			0x68
+#define ICM42688_I2C_ADDR_1			0x69
 
 typedef err_code_t (*icm42688_func_i2c_send)(uint8_t reg_addr, uint8_t *buf_send, uint16_t len);
 typedef err_code_t (*icm42688_func_i2c_recv)(uint8_t reg_addr, uint8_t *buf_recv, uint16_t len);
@@ -101,6 +101,17 @@ err_code_t icm42688_set_config(icm42688_handle_t handle, icm42688_cfg_t config);
  *      - Others:           Fail.
  */
 err_code_t icm42688_config(icm42688_handle_t handle);
+
+/*
+ * @brief   Reset ICM42688 by software.
+ *
+ * @param 	handle Handle structure.
+ *
+ * @return
+ *      - ERR_CODE_SUCCESS: Success.
+ *      - Others:           Fail.
+ */
+err_code_t icm42688_reset(icm42688_handle_t handle);
 
 
 #ifdef __cplusplus
