@@ -45,6 +45,87 @@ typedef void (*icm42688_func_delay)(uint32_t ms);
 typedef struct icm42688 *icm42688_handle_t;
 
 /**
+ * @brief   Gyro mode.
+ */
+typedef enum {
+	ICM42688_GYRO_MODE_OFF = 0,
+	ICM42688_GYRO_MODE_STANDBY = 1,
+	ICM42688_GYRO_MODE_LOW_NOISE = 3
+} icm42688_gyro_mode_t;
+
+/**
+ * @brief   Gyro oversample data rate.
+ */
+typedef enum {
+	ICM42688_GYRO_ODR_32kHz = 1,
+	ICM42688_GYRO_ODR_16kHz = 2,
+	ICM42688_GYRO_ODR_8kHz = 3,
+	ICM42688_GYRO_ODR_4kHz = 4,
+	ICM42688_GYRO_ODR_2kHz = 5,
+	ICM42688_GYRO_ODR_1kHz = 6,
+	ICM42688_GYRO_ODR_200Hz = 7,
+	ICM42688_GYRO_ODR_100Hz = 8,
+	ICM42688_GYRO_ODR_50Hz = 9,
+	ICM42688_GYRO_ODR_25Hz = 10,
+	ICM42688_GYRO_ODR_12_5Hz = 11,
+	ICM42688_GYRO_ODR_500Hz = 15
+} icm42688_gyro_odr_t;
+
+/**
+ * @brief   Gyroscope full scale.
+ */
+typedef enum {
+	ICM42688_GFS_SEL_2000dps = 0,                
+	ICM42688_GFS_SEL_1000dps = 1,                  
+	ICM42688_GFS_SEL_500dps = 2,                   
+	ICM42688_GFS_SEL_250dps = 3,                  
+	ICM42688_GFS_SEL_125dps = 4,                  
+	ICM42688_GFS_SEL_62_5dps = 5,                  
+	ICM42688_GFS_SEL_31_25dps = 6,                  
+	ICM42688_GFS_SEL_15_625dps = 7
+} icm42688_gyro_fs_sel_t;
+
+/**
+ * @brief   Accel mode.
+ */
+typedef enum {
+	ICM42688_ACCEL_MODE_OFF = 0,
+	ICM42688_ACCEL_MODE_LOW_POWER = 2,
+	ICM42688_ACCEL_MODE_LOW_NOISE = 3
+} icm42688_accel_mode_t;
+
+/**
+ * @brief   Accel oversample data rate.
+ */
+typedef enum {
+	ICM42688_ACCEL_ODR_32kHz = 1,
+	ICM42688_ACCEL_ODR_16kHz = 2,
+	ICM42688_ACCEL_ODR_8kHz = 3,
+	ICM42688_ACCEL_ODR_4kHz = 4,
+	ICM42688_ACCEL_ODR_2kHz = 5,
+	ICM42688_ACCEL_ODR_1kHz = 6,
+	ICM42688_ACCEL_ODR_200Hz = 7,
+	ICM42688_ACCEL_ODR_100Hz = 8,
+	ICM42688_ACCEL_ODR_50Hz = 9,
+	ICM42688_ACCEL_ODR_25Hz = 10,
+	ICM42688_ACCEL_ODR_12_5Hz = 11,
+	ICM42688_ACCEL_ODR_6_25Hz = 12,
+	ICM42688_ACCEL_ODR_3_125Hz = 13,
+	ICM42688_ACCEL_ODR_1_5625Hz = 14,
+	ICM42688_ACCEL_ODR_500Hz = 15
+} icm42688_accel_odr_t;
+
+/**
+ * @brief   Accel full scale.
+ */
+typedef enum {
+	ICM42688_ACCEL_FS_SEL_16G = 0,
+	ICM42688_ACCEL_FS_SEL_8G = 1,
+	ICM42688_ACCEL_FS_SEL_4G = 2,
+	ICM42688_ACCEL_FS_SEL_2G = 3
+} icm42688_accel_fs_sel_t;
+
+/**
  * @brief   Communication mode.
  */
 typedef enum {
@@ -56,7 +137,12 @@ typedef enum {
  * @brief   Configuration structure.
  */
 typedef struct {
-
+	icm42688_gyro_mode_t  			gyro_mode;					/*!< Gyro mode */
+	icm42688_gyro_fs_sel_t  		gyro_fs_sel;				/*!< Gyro full scale */
+	icm42688_gyro_odr_t  			gyro_odr;					/*!< Gyro oversample data rate */
+	icm42688_accel_mode_t   		accel_mode;					/*!< Accel mode */
+	icm42688_accel_odr_t   			accel_odr;					/*!< Accel oversample data rate */
+	icm42688_accel_fs_sel_t   		accel_fs_sel;				/*!< Accel full scale */
 	icm42688_comm_mode_t   			comm_mode;					/*!< Comminication mode */
 	icm42688_func_i2c_send       	i2c_send;        			/*!< Function I2C send */
 	icm42688_func_i2c_recv       	i2c_recv;         			/*!< Function I2C receive */
