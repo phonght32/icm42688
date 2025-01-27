@@ -54,6 +54,20 @@ typedef enum {
 } icm42688_gyro_mode_t;
 
 /**
+ * @brief   Gyroscope full scale.
+ */
+typedef enum {
+	ICM42688_GFS_SEL_2000dps = 0,
+	ICM42688_GFS_SEL_1000dps = 1,
+	ICM42688_GFS_SEL_500dps = 2,
+	ICM42688_GFS_SEL_250dps = 3,
+	ICM42688_GFS_SEL_125dps = 4,
+	ICM42688_GFS_SEL_62_5dps = 5,
+	ICM42688_GFS_SEL_31_25dps = 6,
+	ICM42688_GFS_SEL_15_625dps = 7
+} icm42688_gyro_fs_sel_t;
+
+/**
  * @brief   Gyro oversample data rate.
  */
 typedef enum {
@@ -72,20 +86,6 @@ typedef enum {
 } icm42688_gyro_odr_t;
 
 /**
- * @brief   Gyroscope full scale.
- */
-typedef enum {
-	ICM42688_GFS_SEL_2000dps = 0,                
-	ICM42688_GFS_SEL_1000dps = 1,                  
-	ICM42688_GFS_SEL_500dps = 2,                   
-	ICM42688_GFS_SEL_250dps = 3,                  
-	ICM42688_GFS_SEL_125dps = 4,                  
-	ICM42688_GFS_SEL_62_5dps = 5,                  
-	ICM42688_GFS_SEL_31_25dps = 6,                  
-	ICM42688_GFS_SEL_15_625dps = 7
-} icm42688_gyro_fs_sel_t;
-
-/**
  * @brief   Accel mode.
  */
 typedef enum {
@@ -93,6 +93,16 @@ typedef enum {
 	ICM42688_ACCEL_MODE_LOW_POWER = 2,
 	ICM42688_ACCEL_MODE_LOW_NOISE = 3
 } icm42688_accel_mode_t;
+
+/**
+ * @brief   Accel full scale.
+ */
+typedef enum {
+	ICM42688_ACCEL_FS_SEL_16G = 0,
+	ICM42688_ACCEL_FS_SEL_8G = 1,
+	ICM42688_ACCEL_FS_SEL_4G = 2,
+	ICM42688_ACCEL_FS_SEL_2G = 3
+} icm42688_accel_fs_sel_t;
 
 /**
  * @brief   Accel oversample data rate.
@@ -114,16 +124,6 @@ typedef enum {
 	ICM42688_ACCEL_ODR_1_5625Hz = 14,
 	ICM42688_ACCEL_ODR_500Hz = 15
 } icm42688_accel_odr_t;
-
-/**
- * @brief   Accel full scale.
- */
-typedef enum {
-	ICM42688_ACCEL_FS_SEL_16G = 0,
-	ICM42688_ACCEL_FS_SEL_8G = 1,
-	ICM42688_ACCEL_FS_SEL_4G = 2,
-	ICM42688_ACCEL_FS_SEL_2G = 3
-} icm42688_accel_fs_sel_t;
 
 /**
  * @brief   Communication mode.
@@ -198,6 +198,101 @@ err_code_t icm42688_config(icm42688_handle_t handle);
  *      - Others:           Fail.
  */
 err_code_t icm42688_reset(icm42688_handle_t handle);
+
+/*
+ * @brief   Get accelerometer raw value.
+ *
+ * @param   handle Handle structure.
+ * @param   raw_x Raw value x axis.
+ * @param   raw_y Raw value y axis.
+ * @param   raw_z Raw value z axis.
+ *
+ * @return
+ *      - ERR_CODE_SUCCESS: Success.
+ *      - Others:           Fail.
+ */
+err_code_t icm42688_get_accel_raw(icm42688_handle_t handle, int16_t *raw_x, int16_t *raw_y, int16_t *raw_z);
+
+/*
+ * @brief   Get accelerometer calibrated data.
+ *
+ * @param   handle Handle structure.
+ * @param   calib_x Calibrated data x axis.
+ * @param   calib_y Calibrated data y axis.
+ * @param   calib_z Calibrated data z axis.
+ *
+ * @return
+ *      - ERR_CODE_SUCCESS: Success.
+ *      - Others:           Fail.
+ */
+err_code_t icm42688_get_accel_calib(icm42688_handle_t handle, int16_t *calib_x, int16_t *calib_y, int16_t *calib_z);
+
+/*
+ * @brief   Get accelerometer scaled data.
+ *
+ * @param   handle Handle structure.
+ * @param   scale_x Scaled data x axis.
+ * @param   scale_y Scaled data y axis.
+ * @param   scale_z Scaled data z axis.
+ *
+ * @return
+ *      - ERR_CODE_SUCCESS: Success.
+ *      - Others:           Fail.
+ */
+err_code_t icm42688_get_accel_scale(icm42688_handle_t handle, float *scale_x, float *scale_y, float *scale_z);
+
+/*
+ * @brief   Get gyroscope raw value.
+ *
+ * @param   handle Handle structure.
+ * @param   raw_x Raw value x axis.
+ * @param   raw_y Raw value y axis.
+ * @param   raw_z Raw value z axis.
+ *
+ * @return
+ *      - ERR_CODE_SUCCESS: Success.
+ *      - Others:           Fail.
+ */
+err_code_t icm42688_get_gyro_raw(icm42688_handle_t handle, int16_t *raw_x, int16_t *raw_y, int16_t *raw_z);
+
+/*
+ * @brief   Get gyroscope calibrated data.
+ *
+ * @param   handle Handle structure.
+ * @param   calib_x Calibrated data x axis.
+ * @param   calib_y Calibrated data y axis.
+ * @param   calib_z Calibrated data z axis.
+ *
+ * @return
+ *      - ERR_CODE_SUCCESS: Success.
+ *      - Others:           Fail.
+ */
+err_code_t icm42688_get_gyro_calib(icm42688_handle_t handle, int16_t *calib_x, int16_t *calib_y, int16_t *calib_z);
+
+/*
+ * @brief   Get gyroscope scaled data.
+ *
+ * @param   handle Handle structure.
+ * @param   scale_x Scaled data x axis.
+ * @param   scale_y Scaled data y axis.
+ * @param   scale_z Scaled data z axis.
+ *
+ * @return
+ *      - ERR_CODE_SUCCESS: Success.
+ *      - Others:           Fail.
+ */
+err_code_t icm42688_get_gyro_scale(icm42688_handle_t handle, float *scale_x, float *scale_y, float *scale_z);
+
+/*
+ * @brief   Auto calibrate all acceleromter and gyroscope bias value.
+ *
+ * @param   handle Handle structure.
+ *
+ * @return
+ *      - ERR_CODE_SUCCESS: Success.
+ *      - Others:           Fail.
+ */
+err_code_t icm42688_auto_calib(icm42688_handle_t handle);
 
 
 #ifdef __cplusplus

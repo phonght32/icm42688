@@ -135,9 +135,10 @@
 #define ICM42688_REG_BANK_SEL 						0x76
 
 
-
 #define ICM42688_CS_ACTIVE 							0
 #define ICM42688_CS_UNACTIVE 						1
+
+#define BUFFER_CALIB_DEFAULT        				1000        /*!< Default the number of sample data when calibrate */
 
 typedef struct icm42688 {
 	icm42688_gyro_mode_t  			gyro_mode;					/*!< Gyro mode */
@@ -154,6 +155,14 @@ typedef struct icm42688 {
 	icm42688_func_set_gpio   		set_cs;  					/*!< Function set pin CS */
 	icm42688_func_delay          	delay;                 		/*!< Function delay function */
 	uint8_t 						bank;
+	float                   		accel_scaling_factor;   	/*!< Accelerometer scaling factor */
+	float                   		gyro_scaling_factor;    	/*!< Gyroscope scaling factor */
+	int16_t                     	accel_bias_x;               /*!< Accelerometer bias of x axis */
+	int16_t                     	accel_bias_y;               /*!< Accelerometer bias of y axis */
+	int16_t                     	accel_bias_z;               /*!< Accelerometer bias of z axis */
+	int16_t                     	gyro_bias_x;                /*!< Gyroscope bias of x axis */
+	int16_t                     	gyro_bias_y;                /*!< Gyroscope bias of y axis */
+	int16_t                     	gyro_bias_z;                /*!< Gyroscope bias of z axis */
 } icm42688_t;
 
 static err_code_t icm42688_send(icm42688_handle_t handle, uint8_t reg_addr, uint8_t *buf_send, uint16_t len)
@@ -169,11 +178,8 @@ static err_code_t icm42688_send(icm42688_handle_t handle, uint8_t reg_addr, uint
 			handle->set_cs(ICM42688_CS_ACTIVE);
 		}
 
-		uint8_t buf[len + 1];
-		buf[0] = reg_addr;
-		memcpy(&buf[1], buf_send, len);
-
-		handle->spi_send(buf, len + 1);
+		handle->spi_send(&reg_addr, 1);
+		handle->spi_send(buf_send, len);
 
 		if (handle->set_cs != NULL)
 		{
@@ -246,6 +252,59 @@ err_code_t icm42688_set_config(icm42688_handle_t handle, icm42688_cfg_t config)
 		return ERR_CODE_NULL_PTR;
 	}
 
+	float gyro_scaling_factor;
+	float accel_scaling_factor;
+
+	/* Update gyroscope scaling factor */
+	switch (config.gyro_fs_sel)
+	{
+	case ICM42688_GFS_SEL_15_625dps:
+		gyro_scaling_factor = 15.625f / 32768.0f;
+		break;
+	case ICM42688_GFS_SEL_31_25dps:
+		gyro_scaling_factor = 31.25f / 32768.0f;
+		break;
+	case ICM42688_GFS_SEL_62_5dps:
+		gyro_scaling_factor = 62.5f / 32768.0f;
+		break;
+	case ICM42688_GFS_SEL_125dps:
+		gyro_scaling_factor = 125.0f / 32768.0f;
+		break;
+	case ICM42688_GFS_SEL_250dps:
+		gyro_scaling_factor = 250.0f / 32768.0f;
+		break;
+	case ICM42688_GFS_SEL_500dps:
+		gyro_scaling_factor = 500.0f / 32768.0f;
+		break;
+	case ICM42688_GFS_SEL_1000dps:
+		gyro_scaling_factor = 1000.0f / 32768.0f;
+		break;
+	case ICM42688_GFS_SEL_2000dps:
+		gyro_scaling_factor = 2000.0f / 32768.0f;
+		break;
+	default:
+		break;
+	}
+
+	/* Update accelerometer scaling factor */
+	switch (config.accel_fs_sel)
+	{
+	case ICM42688_ACCEL_FS_SEL_2G:
+		accel_scaling_factor = (2.0f / 32768.0f);
+		break;
+	case ICM42688_ACCEL_FS_SEL_4G:
+		accel_scaling_factor = (4.0f / 32768.0f);
+		break;
+	case ICM42688_ACCEL_FS_SEL_8G:
+		accel_scaling_factor = (8.0f / 32768.0f);
+		break;
+	case ICM42688_ACCEL_FS_SEL_16G:
+		accel_scaling_factor = (16.0f / 32768.0f);
+		break;
+	default:
+		break;
+	}
+
 	handle->gyro_mode 					= config.gyro_mode;
 	handle->gyro_fs_sel 				= config.gyro_fs_sel;
 	handle->gyro_odr 					= config.gyro_odr;
@@ -259,6 +318,8 @@ err_code_t icm42688_set_config(icm42688_handle_t handle, icm42688_cfg_t config)
 	handle->spi_recv 					= config.spi_recv;
 	handle->set_cs 						= config.set_cs;
 	handle->delay 						= config.delay;
+	handle->gyro_scaling_factor        	= gyro_scaling_factor;
+	handle->accel_scaling_factor        = accel_scaling_factor;
 
 	return ERR_CODE_SUCCESS;
 }
@@ -271,14 +332,16 @@ err_code_t icm42688_config(icm42688_handle_t handle)
 		return ERR_CODE_NULL_PTR;
 	}
 
+	uint8_t who_am_i;
+	uint8_t config_data = 0;
+	uint8_t recv_data = 0;
+
 	icm42688_reset(handle);
+	handle->delay(20);
 
 	icm42688_set_bank(handle, 0);
 
-	uint8_t who_am_i;
-	uint8_t config_data = 0;
 	icm42688_recv(handle, ICM42688_REG_BANK0_WHO_AM_I, &who_am_i, 1);
-
 	if (who_am_i != 0x47)
 	{
 		return ERR_CODE_FAIL;
@@ -287,7 +350,7 @@ err_code_t icm42688_config(icm42688_handle_t handle)
 	/* Configure accel mode and gyro mode */
 	config_data = (handle->gyro_mode << 2) | handle->accel_mode;
 	icm42688_send(handle, ICM42688_REG_BANK0_PWR_MGMT0, &config_data, 1);
-	handle->delay(1);
+	handle->delay(2);
 
 	/* Configure accel ODR and FS */
 	config_data = (handle->accel_fs_sel << 5) | handle->accel_odr;
@@ -296,10 +359,25 @@ err_code_t icm42688_config(icm42688_handle_t handle)
 	/* Configure gyro ODR and FS */
 	config_data = (handle->gyro_fs_sel << 5) | handle->gyro_odr;
 	icm42688_send(handle, ICM42688_REG_BANK0_GYRO_CONFIG0, &config_data, 1);
-  
-  	/* set gyro and accel bandwidth to ODR/10 */
-  	config_data = 0x44;
-  	icm42688_send(handle, ICM42688_REG_BANK0_GYRO_ACCEL_CONFIG0, &config_data, 1);
+
+	/* set gyro and accel bandwidth to ODR/10 */
+	config_data = 0x44;
+	icm42688_send(handle, ICM42688_REG_BANK0_GYRO_ACCEL_CONFIG0, &config_data, 1);
+
+	/* Push-pull, pulsed, active HIGH interrupts */
+	icm42688_recv(handle, ICM42688_REG_BANK0_INT_CONFIG, &recv_data, 1);
+	config_data = (0x18 | 0x03);
+	icm42688_send(handle, ICM42688_REG_BANK0_INT_CONFIG, &config_data, 1);
+
+	/* Clear bit 4 to allow async interrupt reset (required for proper interrupt operation) */
+	icm42688_recv(handle, ICM42688_REG_BANK0_INT_CONFIG1, &recv_data, 1);
+	config_data = recv_data & ~(0x10);
+	icm42688_send(handle, ICM42688_REG_BANK0_INT_CONFIG1, &config_data, 1);
+
+	/* Route data ready interrupt to INT1 */
+	config_data = 0x18;
+	icm42688_send(handle, ICM42688_REG_BANK0_INT_SOURCE0, &config_data, 1);
+
 
 	return ERR_CODE_SUCCESS;
 }
@@ -317,10 +395,180 @@ err_code_t icm42688_reset(icm42688_handle_t handle)
 	uint8_t buf_send = 0x01;
 	icm42688_send(handle, ICM42688_REG_BANK0_DEVICE_CONFIG, &buf_send, 1);
 
-	if (handle->delay != NULL)
+	return ERR_CODE_SUCCESS;
+}
+
+err_code_t icm42688_get_accel_raw(icm42688_handle_t handle, int16_t *raw_x, int16_t *raw_y, int16_t *raw_z)
+{
+	/* Check if handle structure is NULL */
+	if (handle == NULL)
 	{
-		handle->delay(100);
+		return ERR_CODE_NULL_PTR;
 	}
+
+	uint8_t accel_raw_data[6];
+
+	icm42688_set_bank(handle, 0);
+
+	icm42688_recv(handle, ICM42688_REG_BANK0_ACCEL_DATA_X1, accel_raw_data, 6);
+
+	*raw_x = (int16_t)((accel_raw_data[0] << 8) + accel_raw_data[1]);
+	*raw_y = (int16_t)((accel_raw_data[2] << 8) + accel_raw_data[3]);
+	*raw_z = (int16_t)((accel_raw_data[4] << 8) + accel_raw_data[5]);
+
+	return ERR_CODE_SUCCESS;
+}
+
+err_code_t icm42688_get_accel_calib(icm42688_handle_t handle, int16_t *calib_x, int16_t *calib_y, int16_t *calib_z)
+{
+	/* Check if handle structure or pointer data is NULL */
+	if ((handle == NULL) || (calib_x == NULL) || (calib_y == NULL) || (calib_z == NULL))
+	{
+		return ERR_CODE_NULL_PTR;
+	}
+
+	uint8_t accel_raw_data[6];
+
+	icm42688_set_bank(handle, 0);
+
+	icm42688_recv(handle, ICM42688_REG_BANK0_ACCEL_DATA_X1, accel_raw_data, 6);
+
+	*calib_x = (int16_t)((accel_raw_data[0] << 8) + accel_raw_data[1]) - handle->accel_bias_x;
+	*calib_y = (int16_t)((accel_raw_data[2] << 8) + accel_raw_data[3]) - handle->accel_bias_y;
+	*calib_z = (int16_t)((accel_raw_data[4] << 8) + accel_raw_data[5]) - handle->accel_bias_z;
+
+	return ERR_CODE_SUCCESS;
+}
+
+err_code_t icm42688_get_accel_scale(icm42688_handle_t handle, float *scale_x, float *scale_y, float *scale_z)
+{
+	/* Check if handle structure or pointer data is NULL */
+	if ((handle == NULL) || (scale_x == NULL) || (scale_y == NULL) || (scale_z == NULL))
+	{
+		return ERR_CODE_NULL_PTR;
+	}
+
+	uint8_t accel_raw_data[6];
+
+	icm42688_set_bank(handle, 0);
+
+	icm42688_recv(handle, ICM42688_REG_BANK0_ACCEL_DATA_X1, accel_raw_data, 6);
+
+	*scale_x = (float)((int16_t)((accel_raw_data[0] << 8) + accel_raw_data[1]) - handle->accel_bias_x) * handle->accel_scaling_factor;
+	*scale_y = (float)((int16_t)((accel_raw_data[2] << 8) + accel_raw_data[3]) - handle->accel_bias_y) * handle->accel_scaling_factor;
+	*scale_z = (float)((int16_t)((accel_raw_data[4] << 8) + accel_raw_data[5]) - handle->accel_bias_z) * handle->accel_scaling_factor;
+
+	return ERR_CODE_SUCCESS;
+}
+
+err_code_t icm42688_get_gyro_raw(icm42688_handle_t handle, int16_t *raw_x, int16_t *raw_y, int16_t *raw_z)
+{
+	/* Check if handle structure is NULL */
+	if (handle == NULL)
+	{
+		return ERR_CODE_NULL_PTR;
+	}
+
+	uint8_t gyro_raw_data[6];
+
+	icm42688_set_bank(handle, 0);
+
+	icm42688_recv(handle, ICM42688_REG_BANK0_GYRO_DATA_X1, gyro_raw_data, 6);
+
+	*raw_x = (int16_t)((gyro_raw_data[0] << 8) + gyro_raw_data[1]);
+	*raw_y = (int16_t)((gyro_raw_data[2] << 8) + gyro_raw_data[3]);
+	*raw_z = (int16_t)((gyro_raw_data[4] << 8) + gyro_raw_data[5]);
+
+	return ERR_CODE_SUCCESS;
+}
+
+err_code_t icm42688_get_gyro_calib(icm42688_handle_t handle, int16_t *calib_x, int16_t *calib_y, int16_t *calib_z)
+{
+	/* Check if handle structure or pointer data is NULL */
+	if ((handle == NULL) || (calib_x == NULL) || (calib_y == NULL) || (calib_z == NULL))
+	{
+		return ERR_CODE_NULL_PTR;
+	}
+
+	uint8_t gyro_raw_data[6];
+
+	icm42688_set_bank(handle, 0);
+
+	icm42688_recv(handle, ICM42688_REG_BANK0_GYRO_DATA_X1, gyro_raw_data, 6);
+
+	*calib_x = (int16_t)((gyro_raw_data[0] << 8) + gyro_raw_data[1]) - handle->gyro_bias_x;
+	*calib_y = (int16_t)((gyro_raw_data[2] << 8) + gyro_raw_data[3]) - handle->gyro_bias_y;
+	*calib_z = (int16_t)((gyro_raw_data[4] << 8) + gyro_raw_data[5]) - handle->gyro_bias_z;
+
+
+	return ERR_CODE_SUCCESS;
+}
+
+err_code_t icm42688_get_gyro_scale(icm42688_handle_t handle, float *scale_x, float *scale_y, float *scale_z)
+{
+	/* Check if handle structure or pointer data is NULL */
+	if ((handle == NULL) || (scale_x == NULL) || (scale_y == NULL) || (scale_z == NULL))
+	{
+		return ERR_CODE_NULL_PTR;
+	}
+
+	uint8_t gyro_raw_data[6];
+
+	icm42688_set_bank(handle, 0);
+
+	icm42688_recv(handle, ICM42688_REG_BANK0_GYRO_DATA_X1, gyro_raw_data, 6);
+
+	*scale_x = (float)((int16_t)((gyro_raw_data[0] << 8) + gyro_raw_data[1]) - handle->gyro_bias_x) * handle->gyro_scaling_factor;
+	*scale_y = (float)((int16_t)((gyro_raw_data[2] << 8) + gyro_raw_data[3]) - handle->gyro_bias_y) * handle->gyro_scaling_factor;
+	*scale_z = (float)((int16_t)((gyro_raw_data[4] << 8) + gyro_raw_data[5]) - handle->gyro_bias_z) * handle->gyro_scaling_factor;
+
+	return ERR_CODE_SUCCESS;
+}
+
+err_code_t icm42688_auto_calib(icm42688_handle_t handle)
+{
+	int buffersize = BUFFER_CALIB_DEFAULT;
+	int mean_ax, mean_ay, mean_az, mean_gx, mean_gy, mean_gz;
+	long i = 0, buff_ax = 0, buff_ay = 0, buff_az = 0, buff_gx = 0, buff_gy = 0, buff_gz = 0;
+	int16_t accel_raw_x, accel_raw_y, accel_raw_z;
+	int16_t gyro_raw_x, gyro_raw_y, gyro_raw_z;
+
+	icm42688_set_bank(handle, 0);
+
+	while (i < (buffersize + 101))
+	{
+		handle->delay(1);
+
+		icm42688_get_accel_raw(handle, &accel_raw_x, &accel_raw_y, &accel_raw_z);
+		icm42688_get_gyro_raw(handle, &gyro_raw_x, &gyro_raw_y, &gyro_raw_z);
+
+		if (i > 100 && i <= (buffersize + 100))
+		{
+			buff_ax += accel_raw_x;
+			buff_ay += accel_raw_y;
+			buff_az += accel_raw_z;
+			buff_gx += gyro_raw_x;
+			buff_gy += gyro_raw_y;
+			buff_gz += gyro_raw_z;
+		}
+		if (i == (buffersize + 100))
+		{
+			mean_ax = buff_ax / buffersize;
+			mean_ay = buff_ay / buffersize;
+			mean_az = buff_az / buffersize;
+			mean_gx = buff_gx / buffersize;
+			mean_gy = buff_gy / buffersize;
+			mean_gz = buff_gz / buffersize;
+		}
+		i++;
+	}
+
+	handle->accel_bias_x = mean_ax;
+	handle->accel_bias_y = mean_ay;
+	handle->accel_bias_z = mean_az - 1.0f / handle->accel_scaling_factor;
+	handle->gyro_bias_x = mean_gx;
+	handle->gyro_bias_y = mean_gy;
+	handle->gyro_bias_z = mean_gz;
 
 	return ERR_CODE_SUCCESS;
 }
