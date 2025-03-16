@@ -147,6 +147,12 @@ typedef struct icm42688 {
 	icm42688_accel_mode_t   		accel_mode;					/*!< Accel mode */
 	icm42688_accel_odr_t   			accel_odr;					/*!< Accel oversample data rate */
 	icm42688_accel_fs_sel_t   		accel_fs_sel;				/*!< Accel full scale */
+	int16_t                     	accel_bias_x;               /*!< Accelerometer bias of x axis */
+	int16_t                     	accel_bias_y;               /*!< Accelerometer bias of y axis */
+	int16_t                     	accel_bias_z;               /*!< Accelerometer bias of z axis */
+	int16_t                     	gyro_bias_x;                /*!< Gyroscope bias of x axis */
+	int16_t                     	gyro_bias_y;                /*!< Gyroscope bias of y axis */
+	int16_t                     	gyro_bias_z;                /*!< Gyroscope bias of z axis */
 	icm42688_comm_mode_t   			comm_mode;					/*!< Comminication mode */
 	icm42688_func_i2c_send       	i2c_send;        			/*!< Function I2C send */
 	icm42688_func_i2c_recv       	i2c_recv;         			/*!< Function I2C receive */
@@ -157,12 +163,6 @@ typedef struct icm42688 {
 	uint8_t 						bank;
 	float                   		accel_scaling_factor;   	/*!< Accelerometer scaling factor */
 	float                   		gyro_scaling_factor;    	/*!< Gyroscope scaling factor */
-	int16_t                     	accel_bias_x;               /*!< Accelerometer bias of x axis */
-	int16_t                     	accel_bias_y;               /*!< Accelerometer bias of y axis */
-	int16_t                     	accel_bias_z;               /*!< Accelerometer bias of z axis */
-	int16_t                     	gyro_bias_x;                /*!< Gyroscope bias of x axis */
-	int16_t                     	gyro_bias_y;                /*!< Gyroscope bias of y axis */
-	int16_t                     	gyro_bias_z;                /*!< Gyroscope bias of z axis */
 } icm42688_t;
 
 static err_code_t icm42688_send(icm42688_handle_t handle, uint8_t reg_addr, uint8_t *buf_send, uint16_t len)
@@ -311,6 +311,12 @@ err_code_t icm42688_set_config(icm42688_handle_t handle, icm42688_cfg_t config)
 	handle->accel_mode 					= config.accel_mode;
 	handle->accel_fs_sel 				= config.accel_fs_sel;
 	handle->accel_odr 					= config.accel_odr;
+	handle->accel_bias_x 				= config.accel_bias_x;
+	handle->accel_bias_y 				= config.accel_bias_y;
+	handle->accel_bias_z 				= config.accel_bias_z;
+	handle->gyro_bias_x 				= config.gyro_bias_x;
+	handle->gyro_bias_y 				= config.gyro_bias_y;
+	handle->gyro_bias_z 				= config.gyro_bias_z;
 	handle->comm_mode 					= config.comm_mode;
 	handle->i2c_send 					= config.i2c_send;
 	handle->i2c_recv 					= config.i2c_recv;

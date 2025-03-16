@@ -143,6 +143,12 @@ typedef struct {
 	icm42688_accel_mode_t   		accel_mode;					/*!< Accel mode */
 	icm42688_accel_odr_t   			accel_odr;					/*!< Accel oversample data rate */
 	icm42688_accel_fs_sel_t   		accel_fs_sel;				/*!< Accel full scale */
+	int16_t                     	accel_bias_x;               /*!< Accelerometer bias of x axis */
+	int16_t                     	accel_bias_y;               /*!< Accelerometer bias of y axis */
+	int16_t                     	accel_bias_z;               /*!< Accelerometer bias of z axis */
+	int16_t                     	gyro_bias_x;                /*!< Gyroscope bias of x axis */
+	int16_t                     	gyro_bias_y;                /*!< Gyroscope bias of y axis */
+	int16_t                     	gyro_bias_z;                /*!< Gyroscope bias of z axis */
 	icm42688_comm_mode_t   			comm_mode;					/*!< Comminication mode */
 	icm42688_func_i2c_send       	i2c_send;        			/*!< Function I2C send */
 	icm42688_func_i2c_recv       	i2c_recv;         			/*!< Function I2C receive */
