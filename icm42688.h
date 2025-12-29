@@ -32,11 +32,17 @@ extern "C" {
 #define ICM42688_I2C_ADDR_0			0x68
 #define ICM42688_I2C_ADDR_1			0x69
 
-typedef err_code_t (*icm42688_func_i2c_send)(uint8_t reg_addr, uint8_t *buf_send, uint16_t len);
-typedef err_code_t (*icm42688_func_i2c_recv)(uint8_t reg_addr, uint8_t *buf_recv, uint16_t len);
-typedef err_code_t (*icm42688_func_spi_send)(uint8_t *buf_send, uint16_t len);
-typedef err_code_t (*icm42688_func_spi_recv)(uint8_t *buf_recv, uint16_t len);
-typedef err_code_t (*icm42688_func_set_gpio)(uint8_t level);
+typedef enum {
+	ICM42688_STATUS_SUCCESS = 0,
+	ICM42688_STATUS_FAILED,
+	ICM42688_STATUS_INVALID_ARG
+} icm42688_status_t;
+
+typedef icm42688_status_t (*icm42688_func_i2c_send)(uint8_t reg_addr, uint8_t *buf_send, uint16_t len);
+typedef icm42688_status_t (*icm42688_func_i2c_recv)(uint8_t reg_addr, uint8_t *buf_recv, uint16_t len);
+typedef icm42688_status_t (*icm42688_func_spi_send)(uint8_t *buf_send, uint16_t len);
+typedef icm42688_status_t (*icm42688_func_spi_recv)(uint8_t *buf_recv, uint16_t len);
+typedef icm42688_status_t (*icm42688_func_set_gpio)(uint8_t level);
 typedef void (*icm42688_func_delay)(uint32_t ms);
 
 /**
@@ -167,7 +173,7 @@ typedef struct {
  *
  * @return
  *      - Handle structure: Success.
- *      - Others:           Fail.
+ *      - Others: Failed.
  */
 icm42688_handle_t icm42688_init(void);
 
@@ -178,10 +184,10 @@ icm42688_handle_t icm42688_init(void);
  * @param   config Configuration structure.
  *
  * @return
- *      - ERR_CODE_SUCCESS: Success.
- *      - Others:           Fail.
+ *      - ICM42688_STATUS_SUCCESS: Success.
+ *      - Others: Failed.
  */
-err_code_t icm42688_set_config(icm42688_handle_t handle, icm42688_cfg_t config);
+icm42688_status_t icm42688_set_config(icm42688_handle_t handle, icm42688_cfg_t config);
 
 /*
  * @brief   Configure ICM42688 to run.
@@ -189,10 +195,10 @@ err_code_t icm42688_set_config(icm42688_handle_t handle, icm42688_cfg_t config);
  * @param 	handle Handle structure.
  *
  * @return
- *      - ERR_CODE_SUCCESS: Success.
- *      - Others:           Fail.
+ *      - ICM42688_STATUS_SUCCESS: Success.
+ *      - Others: Failed.
  */
-err_code_t icm42688_config(icm42688_handle_t handle);
+icm42688_status_t icm42688_config(icm42688_handle_t handle);
 
 /*
  * @brief   Reset ICM42688 by software.
@@ -200,10 +206,10 @@ err_code_t icm42688_config(icm42688_handle_t handle);
  * @param 	handle Handle structure.
  *
  * @return
- *      - ERR_CODE_SUCCESS: Success.
- *      - Others:           Fail.
+ *      - ICM42688_STATUS_SUCCESS: Success.
+ *      - Others: Failed.
  */
-err_code_t icm42688_reset(icm42688_handle_t handle);
+icm42688_status_t icm42688_reset(icm42688_handle_t handle);
 
 /*
  * @brief   Get accelerometer raw value.
@@ -214,10 +220,10 @@ err_code_t icm42688_reset(icm42688_handle_t handle);
  * @param   raw_z Raw value z axis.
  *
  * @return
- *      - ERR_CODE_SUCCESS: Success.
- *      - Others:           Fail.
+ *      - ICM42688_STATUS_SUCCESS: Success.
+ *      - Others: Failed.
  */
-err_code_t icm42688_get_accel_raw(icm42688_handle_t handle, int16_t *raw_x, int16_t *raw_y, int16_t *raw_z);
+icm42688_status_t icm42688_get_accel_raw(icm42688_handle_t handle, int16_t *raw_x, int16_t *raw_y, int16_t *raw_z);
 
 /*
  * @brief   Get accelerometer calibrated data.
@@ -228,10 +234,10 @@ err_code_t icm42688_get_accel_raw(icm42688_handle_t handle, int16_t *raw_x, int1
  * @param   calib_z Calibrated data z axis.
  *
  * @return
- *      - ERR_CODE_SUCCESS: Success.
- *      - Others:           Fail.
+ *      - ICM42688_STATUS_SUCCESS: Success.
+ *      - Others: Failed.
  */
-err_code_t icm42688_get_accel_calib(icm42688_handle_t handle, int16_t *calib_x, int16_t *calib_y, int16_t *calib_z);
+icm42688_status_t icm42688_get_accel_calib(icm42688_handle_t handle, int16_t *calib_x, int16_t *calib_y, int16_t *calib_z);
 
 /*
  * @brief   Get accelerometer scaled data.
@@ -242,10 +248,10 @@ err_code_t icm42688_get_accel_calib(icm42688_handle_t handle, int16_t *calib_x, 
  * @param   scale_z Scaled data z axis.
  *
  * @return
- *      - ERR_CODE_SUCCESS: Success.
- *      - Others:           Fail.
+ *      - ICM42688_STATUS_SUCCESS: Success.
+ *      - Others: Failed.
  */
-err_code_t icm42688_get_accel_scale(icm42688_handle_t handle, float *scale_x, float *scale_y, float *scale_z);
+icm42688_status_t icm42688_get_accel_scale(icm42688_handle_t handle, float *scale_x, float *scale_y, float *scale_z);
 
 /*
  * @brief   Get gyroscope raw value.
@@ -256,10 +262,10 @@ err_code_t icm42688_get_accel_scale(icm42688_handle_t handle, float *scale_x, fl
  * @param   raw_z Raw value z axis.
  *
  * @return
- *      - ERR_CODE_SUCCESS: Success.
- *      - Others:           Fail.
+ *      - ICM42688_STATUS_SUCCESS: Success.
+ *      - Others: Failed.
  */
-err_code_t icm42688_get_gyro_raw(icm42688_handle_t handle, int16_t *raw_x, int16_t *raw_y, int16_t *raw_z);
+icm42688_status_t icm42688_get_gyro_raw(icm42688_handle_t handle, int16_t *raw_x, int16_t *raw_y, int16_t *raw_z);
 
 /*
  * @brief   Get gyroscope calibrated data.
@@ -270,10 +276,10 @@ err_code_t icm42688_get_gyro_raw(icm42688_handle_t handle, int16_t *raw_x, int16
  * @param   calib_z Calibrated data z axis.
  *
  * @return
- *      - ERR_CODE_SUCCESS: Success.
- *      - Others:           Fail.
+ *      - ICM42688_STATUS_SUCCESS: Success.
+ *      - Others: Failed.
  */
-err_code_t icm42688_get_gyro_calib(icm42688_handle_t handle, int16_t *calib_x, int16_t *calib_y, int16_t *calib_z);
+icm42688_status_t icm42688_get_gyro_calib(icm42688_handle_t handle, int16_t *calib_x, int16_t *calib_y, int16_t *calib_z);
 
 /*
  * @brief   Get gyroscope scaled data.
@@ -284,10 +290,10 @@ err_code_t icm42688_get_gyro_calib(icm42688_handle_t handle, int16_t *calib_x, i
  * @param   scale_z Scaled data z axis.
  *
  * @return
- *      - ERR_CODE_SUCCESS: Success.
- *      - Others:           Fail.
+ *      - ICM42688_STATUS_SUCCESS: Success.
+ *      - Others: Failed.
  */
-err_code_t icm42688_get_gyro_scale(icm42688_handle_t handle, float *scale_x, float *scale_y, float *scale_z);
+icm42688_status_t icm42688_get_gyro_scale(icm42688_handle_t handle, float *scale_x, float *scale_y, float *scale_z);
 
 /*
  * @brief   Auto calibrate all acceleromter and gyroscope bias value.
@@ -295,10 +301,10 @@ err_code_t icm42688_get_gyro_scale(icm42688_handle_t handle, float *scale_x, flo
  * @param   handle Handle structure.
  *
  * @return
- *      - ERR_CODE_SUCCESS: Success.
- *      - Others:           Fail.
+ *      - ICM42688_STATUS_SUCCESS: Success.
+ *      - Others: Failed.
  */
-err_code_t icm42688_auto_calib(icm42688_handle_t handle);
+icm42688_status_t icm42688_auto_calib(icm42688_handle_t handle);
 
 
 #ifdef __cplusplus

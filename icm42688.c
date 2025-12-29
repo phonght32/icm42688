@@ -165,7 +165,7 @@ typedef struct icm42688 {
 	float                   		gyro_scaling_factor;    	/*!< Gyroscope scaling factor */
 } icm42688_t;
 
-static err_code_t icm42688_send(icm42688_handle_t handle, uint8_t reg_addr, uint8_t *buf_send, uint16_t len)
+static icm42688_status_t icm42688_send(icm42688_handle_t handle, uint8_t reg_addr, uint8_t *buf_send, uint16_t len)
 {
 	if (handle->comm_mode == ICM42688_COMM_MODE_I2C)
 	{
@@ -187,10 +187,10 @@ static err_code_t icm42688_send(icm42688_handle_t handle, uint8_t reg_addr, uint
 		}
 	}
 
-	return ERR_CODE_SUCCESS;
+	return ICM42688_STATUS_SUCCESS;
 }
 
-static err_code_t icm42688_recv(icm42688_handle_t handle, uint8_t reg_addr, uint8_t *buf_recv, uint16_t len)
+static icm42688_status_t icm42688_recv(icm42688_handle_t handle, uint8_t reg_addr, uint8_t *buf_recv, uint16_t len)
 {
 	if (handle->comm_mode == ICM42688_COMM_MODE_I2C)
 	{
@@ -214,14 +214,14 @@ static err_code_t icm42688_recv(icm42688_handle_t handle, uint8_t reg_addr, uint
 		}
 	}
 
-	return ERR_CODE_SUCCESS;
+	return ICM42688_STATUS_SUCCESS;
 }
 
-static err_code_t icm42688_set_bank(icm42688_handle_t handle, uint8_t bank)
+static icm42688_status_t icm42688_set_bank(icm42688_handle_t handle, uint8_t bank)
 {
 	if (handle->bank == bank)
 	{
-		return ERR_CODE_SUCCESS;
+		return ICM42688_STATUS_SUCCESS;
 	}
 
 	uint8_t buf_send = bank;
@@ -230,7 +230,7 @@ static err_code_t icm42688_set_bank(icm42688_handle_t handle, uint8_t bank)
 
 	handle->bank = bank;
 
-	return ERR_CODE_SUCCESS;
+	return ICM42688_STATUS_SUCCESS;
 }
 
 icm42688_handle_t icm42688_init(void)
@@ -244,12 +244,12 @@ icm42688_handle_t icm42688_init(void)
 	return handle;
 }
 
-err_code_t icm42688_set_config(icm42688_handle_t handle, icm42688_cfg_t config)
+icm42688_status_t icm42688_set_config(icm42688_handle_t handle, icm42688_cfg_t config)
 {
 	/* Check if handle structure is NULL */
 	if (handle == NULL)
 	{
-		return ERR_CODE_NULL_PTR;
+		return ICM42688_STATUS_INVALID_ARG;
 	}
 
 	float gyro_scaling_factor;
@@ -327,15 +327,15 @@ err_code_t icm42688_set_config(icm42688_handle_t handle, icm42688_cfg_t config)
 	handle->gyro_scaling_factor        	= gyro_scaling_factor;
 	handle->accel_scaling_factor        = accel_scaling_factor;
 
-	return ERR_CODE_SUCCESS;
+	return ICM42688_STATUS_SUCCESS;
 }
 
-err_code_t icm42688_config(icm42688_handle_t handle)
+icm42688_status_t icm42688_config(icm42688_handle_t handle)
 {
 	/* Check if handle structure is NULL */
 	if (handle == NULL)
 	{
-		return ERR_CODE_NULL_PTR;
+		return ICM42688_STATUS_INVALID_ARG;
 	}
 
 	uint8_t who_am_i;
@@ -385,15 +385,15 @@ err_code_t icm42688_config(icm42688_handle_t handle)
 	icm42688_send(handle, ICM42688_REG_BANK0_INT_SOURCE0, &config_data, 1);
 
 
-	return ERR_CODE_SUCCESS;
+	return ICM42688_STATUS_SUCCESS;
 }
 
-err_code_t icm42688_reset(icm42688_handle_t handle)
+icm42688_status_t icm42688_reset(icm42688_handle_t handle)
 {
 	/* Check if handle structure is NULL */
 	if (handle == NULL)
 	{
-		return ERR_CODE_NULL_PTR;
+		return ICM42688_STATUS_INVALID_ARG;
 	}
 
 	icm42688_set_bank(handle, 0);
@@ -401,15 +401,15 @@ err_code_t icm42688_reset(icm42688_handle_t handle)
 	uint8_t buf_send = 0x01;
 	icm42688_send(handle, ICM42688_REG_BANK0_DEVICE_CONFIG, &buf_send, 1);
 
-	return ERR_CODE_SUCCESS;
+	return ICM42688_STATUS_SUCCESS;
 }
 
-err_code_t icm42688_get_accel_raw(icm42688_handle_t handle, int16_t *raw_x, int16_t *raw_y, int16_t *raw_z)
+icm42688_status_t icm42688_get_accel_raw(icm42688_handle_t handle, int16_t *raw_x, int16_t *raw_y, int16_t *raw_z)
 {
 	/* Check if handle structure is NULL */
 	if (handle == NULL)
 	{
-		return ERR_CODE_NULL_PTR;
+		return ICM42688_STATUS_INVALID_ARG;
 	}
 
 	uint8_t accel_raw_data[6];
@@ -422,15 +422,15 @@ err_code_t icm42688_get_accel_raw(icm42688_handle_t handle, int16_t *raw_x, int1
 	*raw_y = (int16_t)((accel_raw_data[2] << 8) + accel_raw_data[3]);
 	*raw_z = (int16_t)((accel_raw_data[4] << 8) + accel_raw_data[5]);
 
-	return ERR_CODE_SUCCESS;
+	return ICM42688_STATUS_SUCCESS;
 }
 
-err_code_t icm42688_get_accel_calib(icm42688_handle_t handle, int16_t *calib_x, int16_t *calib_y, int16_t *calib_z)
+icm42688_status_t icm42688_get_accel_calib(icm42688_handle_t handle, int16_t *calib_x, int16_t *calib_y, int16_t *calib_z)
 {
 	/* Check if handle structure or pointer data is NULL */
 	if ((handle == NULL) || (calib_x == NULL) || (calib_y == NULL) || (calib_z == NULL))
 	{
-		return ERR_CODE_NULL_PTR;
+		return ICM42688_STATUS_INVALID_ARG;
 	}
 
 	uint8_t accel_raw_data[6];
@@ -443,15 +443,15 @@ err_code_t icm42688_get_accel_calib(icm42688_handle_t handle, int16_t *calib_x, 
 	*calib_y = (int16_t)((accel_raw_data[2] << 8) + accel_raw_data[3]) - handle->accel_bias_y;
 	*calib_z = (int16_t)((accel_raw_data[4] << 8) + accel_raw_data[5]) - handle->accel_bias_z;
 
-	return ERR_CODE_SUCCESS;
+	return ICM42688_STATUS_SUCCESS;
 }
 
-err_code_t icm42688_get_accel_scale(icm42688_handle_t handle, float *scale_x, float *scale_y, float *scale_z)
+icm42688_status_t icm42688_get_accel_scale(icm42688_handle_t handle, float *scale_x, float *scale_y, float *scale_z)
 {
 	/* Check if handle structure or pointer data is NULL */
 	if ((handle == NULL) || (scale_x == NULL) || (scale_y == NULL) || (scale_z == NULL))
 	{
-		return ERR_CODE_NULL_PTR;
+		return ICM42688_STATUS_INVALID_ARG;
 	}
 
 	uint8_t accel_raw_data[6];
@@ -464,15 +464,15 @@ err_code_t icm42688_get_accel_scale(icm42688_handle_t handle, float *scale_x, fl
 	*scale_y = (float)((int16_t)((accel_raw_data[2] << 8) + accel_raw_data[3]) - handle->accel_bias_y) * handle->accel_scaling_factor;
 	*scale_z = (float)((int16_t)((accel_raw_data[4] << 8) + accel_raw_data[5]) - handle->accel_bias_z) * handle->accel_scaling_factor;
 
-	return ERR_CODE_SUCCESS;
+	return ICM42688_STATUS_SUCCESS;
 }
 
-err_code_t icm42688_get_gyro_raw(icm42688_handle_t handle, int16_t *raw_x, int16_t *raw_y, int16_t *raw_z)
+icm42688_status_t icm42688_get_gyro_raw(icm42688_handle_t handle, int16_t *raw_x, int16_t *raw_y, int16_t *raw_z)
 {
 	/* Check if handle structure is NULL */
 	if (handle == NULL)
 	{
-		return ERR_CODE_NULL_PTR;
+		return ICM42688_STATUS_INVALID_ARG;
 	}
 
 	uint8_t gyro_raw_data[6];
@@ -485,15 +485,15 @@ err_code_t icm42688_get_gyro_raw(icm42688_handle_t handle, int16_t *raw_x, int16
 	*raw_y = (int16_t)((gyro_raw_data[2] << 8) + gyro_raw_data[3]);
 	*raw_z = (int16_t)((gyro_raw_data[4] << 8) + gyro_raw_data[5]);
 
-	return ERR_CODE_SUCCESS;
+	return ICM42688_STATUS_SUCCESS;
 }
 
-err_code_t icm42688_get_gyro_calib(icm42688_handle_t handle, int16_t *calib_x, int16_t *calib_y, int16_t *calib_z)
+icm42688_status_t icm42688_get_gyro_calib(icm42688_handle_t handle, int16_t *calib_x, int16_t *calib_y, int16_t *calib_z)
 {
 	/* Check if handle structure or pointer data is NULL */
 	if ((handle == NULL) || (calib_x == NULL) || (calib_y == NULL) || (calib_z == NULL))
 	{
-		return ERR_CODE_NULL_PTR;
+		return ICM42688_STATUS_INVALID_ARG;
 	}
 
 	uint8_t gyro_raw_data[6];
@@ -507,15 +507,15 @@ err_code_t icm42688_get_gyro_calib(icm42688_handle_t handle, int16_t *calib_x, i
 	*calib_z = (int16_t)((gyro_raw_data[4] << 8) + gyro_raw_data[5]) - handle->gyro_bias_z;
 
 
-	return ERR_CODE_SUCCESS;
+	return ICM42688_STATUS_SUCCESS;
 }
 
-err_code_t icm42688_get_gyro_scale(icm42688_handle_t handle, float *scale_x, float *scale_y, float *scale_z)
+icm42688_status_t icm42688_get_gyro_scale(icm42688_handle_t handle, float *scale_x, float *scale_y, float *scale_z)
 {
 	/* Check if handle structure or pointer data is NULL */
 	if ((handle == NULL) || (scale_x == NULL) || (scale_y == NULL) || (scale_z == NULL))
 	{
-		return ERR_CODE_NULL_PTR;
+		return ICM42688_STATUS_INVALID_ARG;
 	}
 
 	uint8_t gyro_raw_data[6];
@@ -528,10 +528,10 @@ err_code_t icm42688_get_gyro_scale(icm42688_handle_t handle, float *scale_x, flo
 	*scale_y = (float)((int16_t)((gyro_raw_data[2] << 8) + gyro_raw_data[3]) - handle->gyro_bias_y) * handle->gyro_scaling_factor;
 	*scale_z = (float)((int16_t)((gyro_raw_data[4] << 8) + gyro_raw_data[5]) - handle->gyro_bias_z) * handle->gyro_scaling_factor;
 
-	return ERR_CODE_SUCCESS;
+	return ICM42688_STATUS_SUCCESS;
 }
 
-err_code_t icm42688_auto_calib(icm42688_handle_t handle)
+icm42688_status_t icm42688_auto_calib(icm42688_handle_t handle)
 {
 	int buffersize = BUFFER_CALIB_DEFAULT;
 	int mean_ax, mean_ay, mean_az, mean_gx, mean_gy, mean_gz;
@@ -576,5 +576,5 @@ err_code_t icm42688_auto_calib(icm42688_handle_t handle)
 	handle->gyro_bias_y = mean_gy;
 	handle->gyro_bias_z = mean_gz;
 
-	return ERR_CODE_SUCCESS;
+	return ICM42688_STATUS_SUCCESS;
 }
