@@ -350,7 +350,7 @@ icm42688_status_t icm42688_config(icm42688_handle_t handle)
 	icm42688_recv(handle, ICM42688_REG_BANK0_WHO_AM_I, &who_am_i, 1);
 	if (who_am_i != 0x47)
 	{
-		return ERR_CODE_FAIL;
+		return ICM42688_STATUS_FAILED;
 	}
 
 	/* Configure accel mode and gyro mode */

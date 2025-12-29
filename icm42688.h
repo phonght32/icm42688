@@ -27,7 +27,7 @@
 extern "C" {
 #endif
 
-#include "err_code.h"
+#include "stdint.h"
 
 #define ICM42688_I2C_ADDR_0			0x68
 #define ICM42688_I2C_ADDR_1			0x69
