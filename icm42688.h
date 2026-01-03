@@ -299,13 +299,14 @@ icm42688_status_t icm42688_get_gyro_scale(icm42688_handle_t handle, float *scale
  * @brief   Auto calibrate all acceleromter and gyroscope bias value.
  *
  * @param   handle Handle structure.
+ * @param   num_samples Number of samples for calibration.
  * @param   reverse_z Set to 1 to reverse the Z axis direction.
  *
  * @return
  *      - ICM42688_STATUS_SUCCESS: Success.
  *      - Others: Failed.
  */
-icm42688_status_t icm42688_auto_calib(icm42688_handle_t handle, uint8_t reverse_z);
+icm42688_status_t icm42688_auto_calib(icm42688_handle_t handle, uint32_t num_samples, uint8_t reverse_z);
 
 
 #ifdef __cplusplus

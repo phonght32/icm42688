@@ -138,8 +138,6 @@
 #define ICM42688_CS_ACTIVE 							0
 #define ICM42688_CS_UNACTIVE 						1
 
-#define BUFFER_CALIB_DEFAULT        				1000        /*!< Default the number of sample data when calibrate */
-
 typedef struct icm42688 {
 	icm42688_gyro_mode_t  			gyro_mode;					/*!< Gyro mode */
 	icm42688_gyro_fs_sel_t  		gyro_fs_sel;				/*!< Gyro full scale */
@@ -531,9 +529,9 @@ icm42688_status_t icm42688_get_gyro_scale(icm42688_handle_t handle, float *scale
 	return ICM42688_STATUS_SUCCESS;
 }
 
-icm42688_status_t icm42688_auto_calib(icm42688_handle_t handle, uint8_t reverse_z)
+icm42688_status_t icm42688_auto_calib(icm42688_handle_t handle, uint32_t num_samples, uint8_t reverse_z)
 {
-	int buffersize = BUFFER_CALIB_DEFAULT;
+	int buffersize = num_samples;
 	int mean_ax, mean_ay, mean_az, mean_gx, mean_gy, mean_gz;
 	long i = 0, buff_ax = 0, buff_ay = 0, buff_az = 0, buff_gx = 0, buff_gy = 0, buff_gz = 0;
 	int16_t accel_raw_x, accel_raw_y, accel_raw_z;
@@ -555,7 +553,7 @@ icm42688_status_t icm42688_auto_calib(icm42688_handle_t handle, uint8_t reverse_
 				accel_raw_z = -accel_raw_z;
 				gyro_raw_z = -gyro_raw_z;
 			}
-			
+
 			buff_ax += accel_raw_x;
 			buff_ay += accel_raw_y;
 			buff_az += accel_raw_z;
