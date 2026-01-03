@@ -531,7 +531,7 @@ icm42688_status_t icm42688_get_gyro_scale(icm42688_handle_t handle, float *scale
 	return ICM42688_STATUS_SUCCESS;
 }
 
-icm42688_status_t icm42688_auto_calib(icm42688_handle_t handle)
+icm42688_status_t icm42688_auto_calib(icm42688_handle_t handle, uint8_t reverse_z)
 {
 	int buffersize = BUFFER_CALIB_DEFAULT;
 	int mean_ax, mean_ay, mean_az, mean_gx, mean_gy, mean_gz;
@@ -550,6 +550,12 @@ icm42688_status_t icm42688_auto_calib(icm42688_handle_t handle)
 
 		if (i > 100 && i <= (buffersize + 100))
 		{
+			if (reverse_z == 1)
+			{
+				accel_raw_z = -accel_raw_z;
+				gyro_raw_z = -gyro_raw_z;
+			}
+			
 			buff_ax += accel_raw_x;
 			buff_ay += accel_raw_y;
 			buff_az += accel_raw_z;
